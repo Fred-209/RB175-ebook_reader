@@ -13,23 +13,30 @@ end
 
 helpers do 
   def in_paragraphs(str)
-    str.split("\n\n").map { |paragraph| "<p>#{paragraph}</p>"}.join
+    str.split("\n\n").map.with_index do |paragraph, idx| 
+      "<p id=#{idx}>#{paragraph}</p>"
+    end
   end
 
-  def text_found_in_chapter?(chapter, text)
-    chapter.match?(/#{text}/i)
+  def paragraphs_matching_search(chapter, search_terms)
+    list = []
+    in_paragraphs(chapter).each do |paragraph|
+      list << paragraph if paragraph.match?(/#{search_terms}/)
+    end
+    list.empty? ? nil : list
   end
 end
 
 get "/search" do 
-  @search_results = []
+  @search_results = {}
   @search_terms = params[:query]
   
   if @search_terms
     
     @contents.size.times do |chapter_num|
-      chapter = File.read("data/chp#{chapter_num + 1}.txt")
-      @search_results << chapter_num if text_found_in_chapter?(chapter, @search_terms)
+      chapter_num += 1
+      chapter = File.read("data/chp#{chapter_num }.txt")
+      @search_results[chapter_num] = paragraphs_matching_search(chapter, @search_terms)
     end
   end
 

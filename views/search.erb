@@ -9,15 +9,27 @@
   <p>Search box can't be empty. Try again.</p>
 <% else %>
   <% if @search_terms %>
-    <% if @search_results.empty? %>
+    <% if @search_results.compact.empty? %>
       <p>Sorry, no matches were found.</p>
     <% else %>
-      <h2>Results for '<%= params[:query] %>'</h2>
-      <ul>
-        <% @search_results.each do |chapter_num| %>
-          <li><a href="/chapters/<%= chapter_num + 1 %>"><%= @contents[chapter_num] %></a></li>
+       <h2>Results for '<%= params[:query] %>' </h2> 
+        <% @search_results.each_pair do |chapter_num, paragraphs| %>
+          <% next unless paragraphs %>
+          <ul>
+            <li><%= @contents[chapter_num - 1] %>
+              <ul>
+                <% paragraphs.each do |paragraph| %>
+                  <% id = paragraph.match(/id=(.+)/)[1] %>
+                  <% path = "/chapters/#{chapter_num}" %>
+                  <% link = path + '#' + id %>
+                  <% paragraph = paragraph.gsub(/\A<p id=\d+>\"/, '').gsub(/"<\/p>$/, '') %>
+                  <% paragraph = paragraph.gsub(/#{@search_terms}/, "<strong>#{@search_terms}</strong>") %>
+                  <li><a href =<%= link %>><%= paragraph %></a></li>
+                <% end %>
+              </ul>
+            </li>
+          </ul>
         <% end %>
-      </ul>
     <% end %>
   <% end %>
 <% end %>
